@@ -66,3 +66,33 @@ Summarizer/
 1. Make sure MongoDB is installed and running on port 27017
 2. The application will automatically create a database called `summarizer_db`
 3. User data will be stored in the `users` collection
+
+
+## Running in Any IDE (PyCharm, VS Code, etc.)
+
+### Backend (Flask)
+- Ensure your Python interpreter is set to Python 3.12 (or any Python 3.7+).
+- Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+- Run the backend server:
+   ```bash
+   python backend/app.py
+   ```
+- The backend will be available at `http://localhost:5001`.
+
+### Frontend (React)
+- Open a terminal in the `frontend` directory.
+- Install dependencies:
+   ```bash
+   npm install
+   ```
+- Start the React development server:
+   ```bash
+   npm start
+   ```
+- The frontend will be available at `http://localhost:3000`.
+
+### MongoDB
+- Make sure MongoDB is running on port 27017.
