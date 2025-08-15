@@ -1,131 +1,129 @@
-.register-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: calc(100vh - 80px);
-  padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* Registration Form Styles */
+form {
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-family: 'Arial', sans-serif;
 }
 
-.register-form {
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  width: 100%;
-  max-width: 500px;
-}
-
-.register-form h2 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: #333;
-  font-size: 28px;
-  font-weight: 600;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  color: #555;
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.form-group input {
+/* Input field styles */
+input {
   width: 100%;
   padding: 12px 16px;
+  margin-bottom: 1rem;
   border: 2px solid #e1e5e9;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 16px;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
   box-sizing: border-box;
 }
 
-.form-group input:focus {
+input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
-.form-group input[type="file"] {
-  padding: 8px;
-  border: 2px dashed #e1e5e9;
-  background: #f8f9fa;
+input::placeholder {
+  color: #6c757d;
+  opacity: 1;
 }
 
-.photo-preview {
-  margin-top: 10px;
-  text-align: center;
-}
-
-.preview-image {
-  max-width: 150px;
-  max-height: 150px;
-  border-radius: 8px;
-  border: 2px solid #e1e5e9;
-  object-fit: cover;
-}
-
-.submit-btn {
+/* Button styles */
+button {
   width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 12px;
+  background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-top: 10px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.submit-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+button:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
 }
 
-.submit-btn:disabled {
-  opacity: 0.6;
+button:active {
+  transform: translateY(0);
+}
+
+button:disabled {
+  background-color: #6c757d;
   cursor: not-allowed;
   transform: none;
 }
 
-.success-message {
-  background: #d4edda;
-  color: #155724;
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border: 1px solid #c3e6cb;
+/* Form title (if you add one) */
+.form-title {
   text-align: center;
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 24px;
+  font-weight: 700;
 }
 
-.error-message {
-  background: #f8d7da;
-  color: #721c24;
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border: 1px solid #f5c6cb;
-  text-align: center;
+/* Error states */
+input.error {
+  border-color: #dc3545;
 }
 
-@media (max-width: 768px) {
-  .register-container {
-    padding: 10px;
+input.error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+/* Success states */
+input.success {
+  border-color: #28a745;
+}
+
+input.success:focus {
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  form {
+    margin: 1rem;
+    padding: 1.5rem;
   }
-  
-  .register-form {
-    padding: 30px 20px;
+
+  input, button {
+    font-size: 14px;
+    padding: 10px 12px;
   }
-  
-  .register-form h2 {
-    font-size: 24px;
+}
+
+/* Loading state for button */
+button.loading {
+  position: relative;
+  color: transparent;
+}
+
+button.loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  left: 50%;
+  margin-left: -10px;
+  margin-top: -10px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
