@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
 from models.db import users_collection
+from utils.otp_utils import generate_otp, send_otp_email, save_otp
 import bcrypt
+from datetime import datetime
 
 signup_bp = Blueprint('signup_bp', __name__)
 
@@ -25,11 +27,19 @@ def register():
             'name': name,
             'email': email,
             'password': hashed_password,
-            'photo': photo
+            'photo': photo,
+            'verified': False,
+            'created_at': datetime.now()
         }
-
         users_collection.insert_one(user)
-        return jsonify({'message': 'User registered successfully'}), 201
+
+        # Generate + send OTP
+        otp = generate_otp()
+        if send_otp_email(email, otp):
+            save_otp(email, otp)
+            return jsonify({'message': 'User registered. Please verify OTP'}), 201
+        else:
+            return jsonify({'error': 'Failed to send OTP'}), 500
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
