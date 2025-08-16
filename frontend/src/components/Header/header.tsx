@@ -25,6 +25,7 @@ export default function Header() {
             </>
           ) : (
             <>
+              <Link to="/chat" className="nav-link">Chat</Link>
               <div className="user-profile">
                 {user?.photo && (
                   <img 

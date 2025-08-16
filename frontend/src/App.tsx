@@ -4,6 +4,7 @@ import { ThemeProvider, AuthProvider, useTheme } from './contexts';
 import SignUpForm from './components/Signup/SignUpForm';
 import LoginForm from './components/Login/LoginForm';
 import WelcomePage from './components/WelcomePage/WelcomePage';
+import ChatInterface from './components/Chat/ChatInterface';
 import './App.css';
 import Header from './components/Header/header';
 
@@ -19,6 +20,7 @@ const AppContent = () => {
           <Route path="/" element={<WelcomePage />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/signup" element={<SignUpForm />} />
+          <Route path="/chat" element={<ChatInterface />} />
         </Routes>
       </main>
     </div>

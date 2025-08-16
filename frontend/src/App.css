@@ -824,18 +824,18 @@ html::-webkit-scrollbar {
 
 /* Dark theme for welcome page */
 .dark .welcome-container {
-  background: #1a1a1a;
-  color: #e5e5e5;
+  background: #212121;
+  color: #ececec;
 }
 
 .dark .welcome-title {
-  color: white;
+  color: #ececec;
 }
 
 .dark .dot {
-  background-color: white;
+  background-color: #ececec;
 }
 
 .dark .loading-text {
-  color: #b3b3b3;
+  color: #b4b4b4;
 }
