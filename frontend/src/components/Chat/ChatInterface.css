@@ -33,7 +33,7 @@
   --primary-rgb: 255, 255, 255;
   --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.5);
   --message-user-bg: #2f2f2f;
-  --message-user-text: #ececec;
+  --message-user-text: #000000;
   --message-ai-bg: #343541;
   --message-ai-text: #ececec;
   --input-bg: #40414f;
