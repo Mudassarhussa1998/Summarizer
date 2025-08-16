@@ -1,31 +1,39 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import RegisterForm from './components/RegisterForm';
-import UsersList from './components/UsersList';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider, AuthProvider, useTheme } from './contexts';
+import SignUpForm from './components/Signup/SignUpForm';
+import LoginForm from './components/Login/LoginForm';
+import WelcomePage from './components/WelcomePage/WelcomePage';
 import './App.css';
+import Header from './components/Header/header';
+
+const AppContent = () => {
+  const { theme } = useTheme();
+
+  return (
+    <div className={`App ${theme}`}>
+      <Header />
+      
+      <main className="main-content">
+        <Routes>
+          <Route path="/" element={<WelcomePage />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/signup" element={<SignUpForm />} />
+        </Routes>
+      </main>
+    </div>
+  );
+};
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <nav className="navbar">
-          <div className="nav-container">
-            <h1 className="nav-title">Summarizer</h1>
-            <div className="nav-links">
-              <Link to="/" className="nav-link">Register</Link>
-              <Link to="/users" className="nav-link">View Users</Link>
-            </div>
-          </div>
-        </nav>
-        
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<RegisterForm />} />
-            <Route path="/users" element={<UsersList />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

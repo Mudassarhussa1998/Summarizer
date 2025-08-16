@@ -13,8 +13,8 @@ def register():
         password = data.get('password')
         photo = data.get('photo')
 
-        if not all([name, email, password, photo]):
-            return jsonify({'error': 'All fields are required'}), 400
+        if not all([name, email, password]):
+            return jsonify({'error': 'Name, email, and password are required'}), 400
 
         if users_collection.find_one({'email': email}):
             return jsonify({'error': 'Email already registered'}), 409
