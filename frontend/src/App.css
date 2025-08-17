@@ -97,21 +97,146 @@ html::-webkit-scrollbar {
   background-color: #f0f0f0;
 }
 
-.theme-toggle {
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  color: #000000;
-  padding: 6px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s ease;
+.theme-toggle-container {
   margin-left: 10px;
+  cursor: pointer;
+  user-select: none;
 }
 
-.theme-toggle:hover {
-  background: #f7f7f8;
-  border-color: #9ca3af;
+.theme-toggle-track {
+  width: 80px;
+  height: 40px;
+  border-radius: 20px;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.theme-toggle-track.light {
+  background: linear-gradient(135deg, #87CEEB 0%, #98D8E8 100%);
+}
+
+.theme-toggle-track.dark {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e1b4b 100%);
+}
+
+.theme-toggle-thumb {
+  width: 32px;
+  height: 32px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 4px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+.theme-toggle-track.light .theme-toggle-thumb {
+  left: 4px;
+}
+
+.theme-toggle-track.dark .theme-toggle-thumb {
+  left: 44px;
+  background: #2d3748;
+}
+
+.theme-icon {
+  width: 18px;
+  height: 18px;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle-bg-elements {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.cloud {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  opacity: 0.8;
+}
+
+.cloud-1 {
+  top: 8px;
+  right: 12px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.cloud-2 {
+  top: 20px;
+  right: 25px;
+  width: 12px;
+  height: 12px;
+  animation: float 3s ease-in-out infinite 1.5s;
+}
+
+.star {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.9;
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+.star-1 {
+  top: 8px;
+  left: 12px;
+  animation-delay: 0s;
+}
+
+.star-2 {
+  top: 20px;
+  left: 20px;
+  animation-delay: 0.7s;
+}
+
+.star-3 {
+  top: 12px;
+  left: 28px;
+  width: 2px;
+  height: 2px;
+  animation-delay: 1.4s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+}
+
+.theme-toggle-container:hover .theme-toggle-track {
+  transform: scale(1.02);
+}
+
+.theme-toggle-container:hover .theme-toggle-thumb {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .user-profile {
@@ -196,16 +321,7 @@ html::-webkit-scrollbar {
   background-color: #2f2f2f;
 }
 
-.App.dark .theme-toggle {
-  background: #2f2f2f;
-  border: 1px solid #404040;
-  color: #ffffff;
-}
-
-.App.dark .theme-toggle:hover {
-  background: #404040;
-  border-color: #525252;
-}
+/* Theme toggle works the same in both light and dark app themes */
 
 .App.dark .user-info {
   background: #2f2f2f;

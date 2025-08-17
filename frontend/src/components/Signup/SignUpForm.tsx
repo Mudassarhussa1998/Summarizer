@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts';
 import { useNavigate } from 'react-router-dom';
 import { registerUser } from '../../api/auth';
+import OTPVerification from '../OTP/OTPVerification';
 
 interface SignUpFormData {
   name: string;
@@ -32,6 +33,8 @@ const SignUpForm: React.FC = () => {
   const [errors, setErrors] = useState<SignUpErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [registrationData, setRegistrationData] = useState<any>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -133,27 +136,11 @@ const SignUpForm: React.FC = () => {
       };
 
       const result = await registerUser(registrationData);
-      console.log('Success:', result);
+      console.log('Registration successful:', result);
       
-      // If registration includes login token, use auth context
-      if (result.token && result.user) {
-        login(result.user, result.token);
-        alert('Registered and logged in successfully!');
-        navigate('/users');
-      } else {
-        alert('Registered successfully! Please login.');
-        navigate('/login');
-      }
-      
-      // Reset form
-      setForm({ 
-        name: '', 
-        email: '', 
-        password: '', 
-        confirmPassword: '', 
-        photo: null 
-      });
-      setPhotoPreview(null);
+      // Store registration data and show OTP verification
+      setRegistrationData({ result, formData: registrationData });
+      setShowOTPVerification(true);
     } catch (error: any) {
       console.error('Error:', error.response?.data || error.message);
       const errorMessage = error.response?.data?.error || error.message || 'Registration failed. Please try again.';
@@ -163,7 +150,45 @@ const SignUpForm: React.FC = () => {
     }
   };
 
+  const handleOTPVerificationSuccess = () => {
+    // After successful OTP verification, log the user in
+    if (registrationData?.result?.token && registrationData?.result?.user) {
+      login(registrationData.result.user, registrationData.result.token);
+      alert('Email verified and logged in successfully!');
+      navigate('/chat');
+    } else {
+      alert('Email verified successfully! Please login.');
+      navigate('/login');
+    }
+    
+    // Reset form state
+    setForm({ 
+      name: '', 
+      email: '', 
+      password: '', 
+      confirmPassword: '', 
+      photo: null 
+    });
+    setPhotoPreview(null);
+    setShowOTPVerification(false);
+    setRegistrationData(null);
+  };
 
+  const handleBackToSignup = () => {
+    setShowOTPVerification(false);
+    setRegistrationData(null);
+  };
+
+  // Show OTP verification if registration was successful
+  if (showOTPVerification && registrationData) {
+    return (
+      <OTPVerification
+        email={form.email}
+        onVerificationSuccess={handleOTPVerificationSuccess}
+        onBack={handleBackToSignup}
+      />
+    );
+  }
 
   return (
     <div className="auth-page-container">
