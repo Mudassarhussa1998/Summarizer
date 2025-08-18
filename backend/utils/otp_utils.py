@@ -29,7 +29,7 @@ def send_otp_email(email, otp):
             server.send_message(msg)
         return True
     except Exception as e:
-        print(f"Error sending email: {e}")
+        # Log error in production environment
         return False
 
 def save_otp(email, otp):

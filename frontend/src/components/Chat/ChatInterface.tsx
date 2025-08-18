@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { sessionApi, chatApi, uploadApi, Session, Message, UploadedFile } from '../../api/chatApi';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import Alert from '../Alert/Alert';
+import { useAlert } from '../../hooks/useAlert';
 import './ChatInterface.css';
 
 interface ChatInterfaceProps {
@@ -11,6 +13,7 @@ interface ChatInterfaceProps {
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
   const { isAuthenticated } = useAuth();
   const { theme } = useTheme();
+  const { alert, showError, hideAlert } = useAlert();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -21,14 +24,31 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
+  const loadSessions = useCallback(async () => {
+    try {
+      const response = await sessionApi.getSessions();
+      if (response.success) {
+        setSessions(response.sessions);
+        // Auto-select first session if available
+        if (response.sessions.length > 0 && !currentSession) {
+          setCurrentSession(response.sessions[0]);
+        }
+      }
+    } catch (error) {
+      // Error loading sessions - continue with empty state
+    }
+  }, [currentSession]);
 
   // Load sessions on component mount
   useEffect(() => {
     if (isAuthenticated) {
       loadSessions();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, loadSessions]);
 
   // Load messages when current session changes
   useEffect(() => {
@@ -42,25 +62,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
     scrollToBottom();
   }, [messages]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const loadSessions = async () => {
-    try {
-      const response = await sessionApi.getSessions();
-      if (response.success) {
-        setSessions(response.sessions);
-        // Auto-select first session if available
-        if (response.sessions.length > 0 && !currentSession) {
-          setCurrentSession(response.sessions[0]);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading sessions:', error);
-    }
-  };
-
   const loadMessages = async (sessionId: string) => {
     try {
       setIsLoading(true);
@@ -69,7 +70,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         setMessages(response.messages);
       }
     } catch (error) {
-      console.error('Error loading messages:', error);
+      // Error loading messages - continue with empty state
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +86,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         setMessages([]);
       }
     } catch (error) {
-      console.error('Error creating session:', error);
+      // Error creating session
     }
   };
 
@@ -101,7 +102,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         }
       }
     } catch (error) {
-      console.error('Error deleting session:', error);
+      // Error deleting session
     }
   };
 
@@ -137,7 +138,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         ));
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      // Error sending message
     } finally {
       setIsLoading(false);
     }
@@ -149,11 +150,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
       if (response.success) {
         setUploadedFile(response.file);
       } else {
-        alert(response.error || 'File upload failed');
+        showError(response.error || 'File upload failed');
       }
     } catch (error) {
-      console.error('Error uploading file:', error);
-      alert('File upload failed');
+      // Error uploading file
     }
   };
 
@@ -388,6 +388,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
           </div>
         )}
       </div>
+      <Alert
+        message={alert.message}
+        type={alert.type}
+        isVisible={alert.isVisible}
+        onClose={hideAlert}
+      />
     </div>
   );
 };

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts';
 import { useNavigate } from 'react-router-dom';
-import { loginuser } from '../../api/loginuser';
+import { loginUser } from '../../api/auth';
+import Alert from '../Alert/Alert';
+import { useAlert } from '../../hooks/useAlert';
 
 interface LoginFormData {
   email: string;
@@ -16,17 +18,19 @@ interface LoginErrors {
 const LoginForm: React.FC = () => {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { alert, showSuccess, showError, hideAlert } = useAlert();
   const [form, setForm] = useState<LoginFormData>({
     email: '',
     password: ''
   });
   const [errors, setErrors] = useState<LoginErrors>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Redirect if already authenticated
   React.useEffect(() => {
     if (isAuthenticated) {
-      navigate('/users');
+      navigate('/chat');
     }
   }, [isAuthenticated, navigate]);
 
@@ -68,7 +72,7 @@ const LoginForm: React.FC = () => {
 
     try {
       // Call actual API
-      const result = await loginuser(form.email, form.password);
+      const result = await loginUser(form.email, form.password);
       
       // Check if login was successful and we have user data
       if (result.user) {
@@ -76,15 +80,15 @@ const LoginForm: React.FC = () => {
         const token = result.token || 'jwt-token-' + Date.now();
         
         login(result.user, token);
-        alert('Logged in successfully!');
-        navigate('/users');
+        showSuccess('Logged in successfully!');
+        setTimeout(() => {
+          navigate('/chat');
+        }, 1500);
       } else {
         throw new Error('Invalid response from server');
       }
     } catch (error: any) {
-      console.error('Login error:', error);
-      const errorMessage = error.response?.data?.error || error.message || 'Login failed. Please try again.';
-      alert(errorMessage);
+      showError(error.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -118,20 +122,42 @@ const LoginForm: React.FC = () => {
             onChange={handleChange}
             className="form-input"
             disabled={isLoading}
+            autoComplete="email"
           />
           {errors.email && <div className="form-error">{errors.email}</div>}
         </div>
 
         <div>
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={handleChange}
-            className="form-input"
-            disabled={isLoading}
-          />
+          <div className="password-input-container">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
+              className="form-input password-input"
+              disabled={isLoading}
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowPassword(!showPassword)}
+              disabled={isLoading}
+            >
+              {showPassword ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M1 1l22 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+          </div>
           {errors.password && <div className="form-error">{errors.password}</div>}
         </div>
 
@@ -155,6 +181,12 @@ const LoginForm: React.FC = () => {
         </div>
         </form>
       </div>
+      <Alert
+        message={alert.message}
+        type={alert.type}
+        isVisible={alert.isVisible}
+        onClose={hideAlert}
+      />
     </div>
   );
 };

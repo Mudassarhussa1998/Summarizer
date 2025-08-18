@@ -5,3 +5,16 @@ Werkzeug==2.3.7
 Pillow==10.2.0
 bcrypt==4.0.1
 python-dotenv==1.0.0
+speechrecognition>=3.10.0
+pyaudio>=0.2.11
+yt-dlp>=2023.7.6
+requests>=2.31.0
+
+# URL Data Extraction Dependencies
+pydub>=0.25.1
+ffmpeg-python>=0.2.0
+
+# Optional speech recognition engines (uncomment as needed)
+# pocketsphinx>=0.1.15
+# azure-cognitiveservices-speech>=1.30.0
+# ibm-watson>=6.1.0

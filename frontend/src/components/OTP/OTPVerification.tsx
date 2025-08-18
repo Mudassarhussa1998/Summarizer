@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { verifyOTP, resendOTP } from '../../api/otpApi';
 import './OTPVerification.css';
+import Alert from '../Alert/Alert';
+import { useAlert } from '../../hooks/useAlert';
 
 interface OTPVerificationProps {
   email: string;
@@ -15,8 +17,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
 }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const { alert, showSuccess, showError, hideAlert } = useAlert();
   const [resendCooldown, setResendCooldown] = useState(0);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -45,7 +46,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-    setError('');
+    hideAlert();
 
     // Auto-focus next input
     if (value && index < 5) {
@@ -80,22 +81,21 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
     
     const otpString = otp.join('');
     if (otpString.length !== 6) {
-      setError('Please enter all 6 digits');
+      showError('Please enter all 6 digits');
       return;
     }
 
     setIsLoading(true);
-    setError('');
-    setSuccess('');
+    hideAlert();
 
     try {
       await verifyOTP({ email, otp: otpString });
-      setSuccess('Email verified successfully!');
+      showSuccess('Email verified successfully!');
       setTimeout(() => {
         onVerificationSuccess();
       }, 1500);
     } catch (error: any) {
-      setError(error.message || 'Verification failed');
+      showError(error.message || 'Verification failed');
     } finally {
       setIsLoading(false);
     }
@@ -105,17 +105,16 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
     if (resendCooldown > 0) return;
 
     setIsLoading(true);
-    setError('');
-    setSuccess('');
+    hideAlert();
 
     try {
       await resendOTP(email);
-      setSuccess('OTP sent successfully!');
+      showSuccess('OTP sent successfully!');
       setResendCooldown(60); // 60 second cooldown
       setOtp(['', '', '', '', '', '']); // Clear current OTP
       inputRefs.current[0]?.focus();
     } catch (error: any) {
-      setError(error.message || 'Failed to resend OTP');
+      showError(error.message || 'Failed to resend OTP');
     } finally {
       setIsLoading(false);
     }
@@ -151,14 +150,13 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
                     onChange={(e) => handleInputChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     onPaste={handlePaste}
-                    className={`otp-input ${error ? 'error' : ''}`}
+                    className="otp-input"
                     disabled={isLoading}
                   />
                 ))}
               </div>
 
-              {error && <div className="error-message">{error}</div>}
-              {success && <div className="success-message">{success}</div>}
+
 
               <button 
                 type="submit" 
@@ -195,6 +193,12 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
           </div>
         </div>
       </div>
+      <Alert
+        message={alert.message}
+        type={alert.type}
+        isVisible={alert.isVisible}
+        onClose={hideAlert}
+      />
     </div>
   );
 };

@@ -1,0 +1,197 @@
+/* Alert Overlay */
+.alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.alert-overlay.alert-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Alert Container */
+.alert-container {
+  background: #ffffff;
+  border: 2px solid #000000;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 90%;
+  margin: 0 auto;
+  transform: scale(0.9) translateY(-20px);
+  transition: all 0.3s ease;
+  font-family: 'Söhne', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Ubuntu', 'Cantarell', 'Noto Sans', sans-serif;
+}
+
+.alert-visible .alert-container {
+  transform: scale(1) translateY(0);
+}
+
+/* Alert Content */
+.alert-content {
+  padding: 24px;
+}
+
+.alert-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.alert-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.alert-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #000000;
+  line-height: 1.2;
+}
+
+.alert-message {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333333;
+}
+
+/* Alert Actions */
+.alert-actions {
+  padding: 0 24px 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.alert-button {
+  background: #000000;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  min-width: 80px;
+}
+
+.alert-button:hover {
+  background: #333333;
+  transform: translateY(-1px);
+}
+
+.alert-button:active {
+  transform: translateY(0);
+}
+
+/* Alert Types */
+.alert-success .alert-icon {
+  color: #000000;
+}
+
+.alert-error .alert-icon {
+  color: #000000;
+}
+
+.alert-warning .alert-icon {
+  color: #000000;
+}
+
+.alert-info .alert-icon {
+  color: #000000;
+}
+
+/* Dark Theme Support */
+.App.dark .alert-container {
+  background: #1a1a1a;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+}
+
+.App.dark .alert-title {
+  color: #ffffff;
+}
+
+.App.dark .alert-message {
+  color: #cccccc;
+}
+
+.App.dark .alert-button {
+  background: #ffffff;
+  color: #000000;
+}
+
+.App.dark .alert-button:hover {
+  background: #e5e5e5;
+}
+
+.App.dark .alert-success .alert-icon,
+.App.dark .alert-error .alert-icon,
+.App.dark .alert-warning .alert-icon,
+.App.dark .alert-info .alert-icon {
+  color: #ffffff;
+}
+
+/* Animation keyframes */
+@keyframes alertSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes alertSlideOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .alert-container {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .alert-content {
+    padding: 20px;
+  }
+  
+  .alert-actions {
+    padding: 0 20px 20px;
+  }
+  
+  .alert-title {
+    font-size: 16px;
+  }
+  
+  .alert-message {
+    font-size: 13px;
+  }
+}

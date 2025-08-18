@@ -1,32 +1,10 @@
-const API_BASE_URL = 'http://127.0.0.1:5001';
-
-// Get auth token from localStorage
-const getAuthToken = (): string | null => {
-  return localStorage.getItem('authToken');
-};
-
-// Create headers with auth token
-const createHeaders = (): HeadersInit => {
-  const token = getAuthToken();
-  return {
-    'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` })
-  };
-};
-
-// Create headers for file upload
-const createFileHeaders = (): HeadersInit => {
-  const token = getAuthToken();
-  return {
-    ...(token && { 'Authorization': `Bearer ${token}` })
-  };
-};
+import { API_CONFIG, createHeaders, createFileHeaders } from './config';
 
 // Session API
 export const sessionApi = {
   // Create a new session
   createSession: async (name?: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/session/create-session`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/session/create-session`, {
       method: 'POST',
       headers: createHeaders(),
       body: JSON.stringify({ name })
@@ -36,7 +14,7 @@ export const sessionApi = {
 
   // Get all user sessions
   getSessions: async () => {
-    const response = await fetch(`${API_BASE_URL}/api/session/sessions`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/session/sessions`, {
       method: 'GET',
       headers: createHeaders()
     });
@@ -45,7 +23,7 @@ export const sessionApi = {
 
   // Get specific session
   getSession: async (sessionId: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/session/session/${sessionId}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/session/session/${sessionId}`, {
       method: 'GET',
       headers: createHeaders()
     });
@@ -54,7 +32,7 @@ export const sessionApi = {
 
   // Delete session
   deleteSession: async (sessionId: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/session/delete-session/${sessionId}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/session/delete-session/${sessionId}`, {
       method: 'DELETE',
       headers: createHeaders()
     });
@@ -66,7 +44,7 @@ export const sessionApi = {
 export const chatApi = {
   // Send a message
   sendMessage: async (sessionId: string, message: string, type: string = 'text', fileData?: string, fileName?: string, fileSize?: number) => {
-    const response = await fetch(`${API_BASE_URL}/api/chat/send-message`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/chat/send-message`, {
       method: 'POST',
       headers: createHeaders(),
       body: JSON.stringify({
@@ -83,7 +61,7 @@ export const chatApi = {
 
   // Get messages for a session
   getMessages: async (sessionId: string, page: number = 1, limit: number = 50) => {
-    const response = await fetch(`${API_BASE_URL}/api/chat/messages/${sessionId}?page=${page}&limit=${limit}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/chat/messages/${sessionId}?page=${page}&limit=${limit}`, {
       method: 'GET',
       headers: createHeaders()
     });
@@ -92,7 +70,7 @@ export const chatApi = {
 
   // Delete a message
   deleteMessage: async (messageId: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/chat/delete-message/${messageId}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/chat/delete-message/${messageId}`, {
       method: 'DELETE',
       headers: createHeaders()
     });
@@ -101,7 +79,7 @@ export const chatApi = {
 
   // Add AI response (for future use)
   addAiResponse: async (sessionId: string, response: string) => {
-    const responseData = await fetch(`${API_BASE_URL}/api/chat/add-ai-response`, {
+    const responseData = await fetch(`${API_CONFIG.BASE_URL}/api/chat/add-ai-response`, {
       method: 'POST',
       headers: createHeaders(),
       body: JSON.stringify({
@@ -120,7 +98,7 @@ export const uploadApi = {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await fetch(`${API_BASE_URL}/api/upload/upload-file`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/upload/upload-file`, {
       method: 'POST',
       headers: createFileHeaders(),
       body: formData
@@ -130,7 +108,7 @@ export const uploadApi = {
 
   // Upload base64 file data
   uploadBase64: async (fileData: string, filename: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/upload/upload-base64`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/upload/upload-base64`, {
       method: 'POST',
       headers: createHeaders(),
       body: JSON.stringify({
@@ -143,7 +121,7 @@ export const uploadApi = {
 
   // Validate file
   validateFile: async (filename: string, fileSize: number) => {
-    const response = await fetch(`${API_BASE_URL}/api/upload/validate-file`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/upload/validate-file`, {
       method: 'POST',
       headers: createHeaders(),
       body: JSON.stringify({
@@ -156,7 +134,7 @@ export const uploadApi = {
 
   // Get supported formats
   getSupportedFormats: async () => {
-    const response = await fetch(`${API_BASE_URL}/api/upload/supported-formats`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/upload/supported-formats`, {
       method: 'GET'
     });
     return response.json();

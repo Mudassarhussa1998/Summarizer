@@ -1,6 +1,5 @@
 import React from 'react'
-import { useAuth } from '../../contexts/AuthContext';
-import { useTheme } from '../../contexts';
+import { useAuth, useTheme } from '../../contexts';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function Header() {
@@ -26,6 +25,7 @@ export default function Header() {
           ) : (
             <>
               <Link to="/chat" className="nav-link">Chat</Link>
+              <Link to="/youtube" className="nav-link">YouTube</Link>
               <div className="user-profile">
                 {user?.photo && (
                   <img 
