@@ -1,0 +1,128 @@
+/* Background Processing Indicator */
+.processing-indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--card-background, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  min-width: 280px;
+  animation: slideIn 0.3s ease-out;
+}
+
+[data-theme="dark"] .processing-indicator {
+  background: var(--card-background, #1f2937);
+  border-color: var(--border-color, #374151);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.processing-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.processing-spinner {
+  flex-shrink: 0;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-light, #e5e7eb);
+  border-top: 2px solid var(--primary-color, #3b82f6);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+[data-theme="dark"] .spinner {
+  border-color: #374151;
+  border-top-color: var(--primary-color, #60a5fa);
+}
+
+.processing-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.processing-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-color, #111827);
+}
+
+.processing-progress {
+  font-size: 0.8rem;
+  color: var(--primary-color, #3b82f6);
+  font-weight: 500;
+}
+
+.processing-status {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme="dark"] .processing-title {
+  color: var(--text-color, #f9fafb);
+}
+
+[data-theme="dark"] .processing-progress {
+  color: var(--primary-color, #60a5fa);
+}
+
+[data-theme="dark"] .processing-status {
+  color: var(--text-secondary, #9ca3af);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .processing-indicator {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+    padding: 12px;
+  }
+  
+  .processing-content {
+    gap: 10px;
+  }
+  
+  .processing-title {
+    font-size: 0.85rem;
+  }
+  
+  .processing-progress {
+    font-size: 0.75rem;
+  }
+  
+  .processing-status {
+    font-size: 0.7rem;
+    max-width: 120px;
+  }
+}

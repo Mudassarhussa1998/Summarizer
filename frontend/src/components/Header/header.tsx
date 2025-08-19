@@ -26,6 +26,8 @@ export default function Header() {
             <>
               <Link to="/chat" className="nav-link">Chat</Link>
               <Link to="/youtube" className="nav-link">YouTube</Link>
+              <Link to="/video-upload" className="nav-link">Video Upload</Link>
+              <Link to="/history" className="nav-link">History</Link>
               <div className="user-profile">
                 {user?.photo && (
                   <img 

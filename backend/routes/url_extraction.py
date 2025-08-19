@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 from bson import ObjectId
 import json
+import jwt
+import os
 
 def serialize_mongo_doc(doc):
     """Convert MongoDB document to JSON serializable format."""
@@ -27,6 +29,28 @@ from services.url_modules.video_info import VideoInfoExtractor
 from services.url_modules.audio_transcriber import AudioTranscriber
 from services.url_modules.database_manager import DatabaseManager
 
+# JWT Configuration
+JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key')
+
+def verify_token(token):
+    """Verify JWT token and return user data."""
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
+def get_user_from_request():
+    """Extract user data from request headers."""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return None
+    
+    token = auth_header.split(' ')[1]
+    return verify_token(token)
+
 url_extraction_bp = Blueprint('url_extraction', __name__)
 
 # Initialize components
@@ -37,8 +61,17 @@ db_manager = DatabaseManager()
 
 @url_extraction_bp.route('/extract-transcript', methods=['POST'])
 def extract_transcript():
-    """Extract transcript from YouTube URL."""
+    """Extract transcript from YouTube URL for authenticated user."""
     try:
+        # Verify authentication
+        user_data = get_user_from_request()
+        if not user_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        user_id = user_data.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Invalid user data'}), 401
+        
         data = request.get_json()
         url = data.get('url')
         method = data.get('method', 'captions')  # 'captions' or 'audio'
@@ -76,13 +109,14 @@ def extract_transcript():
         if not transcript_text:
             return jsonify({'error': 'Failed to extract transcript'}), 500
         
-        # Store transcript
+        # Store transcript with user_id
         transcript_id = db_manager.store_transcript(
             video_title=video_info['title'],
             video_url=url,
             duration=video_info.get('duration', 0),
             transcript_content=transcript_text,
-            video_info=video_info
+            video_info=video_info,
+            user_id=user_id
         )
         
         return jsonify({
@@ -100,9 +134,24 @@ def extract_transcript():
 
 @url_extraction_bp.route('/get-transcript/<transcript_id>', methods=['GET'])
 def get_transcript(transcript_id):
-    """Get transcript by ID."""
+    """Get transcript by ID for authenticated user."""
     try:
-        transcript = db_manager.get_transcript_by_id(transcript_id)
+        # Verify authentication
+        user_data = get_user_from_request()
+        if not user_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        user_id = user_data.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Invalid user data'}), 401
+        
+        # Get transcript only if it belongs to the authenticated user
+        from models.db import Url_transcripts_collection
+        transcript = Url_transcripts_collection.find_one({
+            '_id': ObjectId(transcript_id),
+            'user_id': user_id
+        })
+        
         if not transcript:
             return jsonify({'error': 'Transcript not found'}), 404
         
@@ -113,13 +162,32 @@ def get_transcript(transcript_id):
 
 @url_extraction_bp.route('/search-transcripts', methods=['GET'])
 def search_transcripts():
-    """Search transcripts by title or content."""
+    """Search transcripts by title or content for authenticated user."""
     try:
+        # Verify authentication
+        user_data = get_user_from_request()
+        if not user_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        user_id = user_data.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Invalid user data'}), 401
+        
         search_term = request.args.get('q', '')
         if not search_term:
             return jsonify({'error': 'Search term is required'}), 400
         
-        results = db_manager.search_transcripts(search_term)
+        # Search with user_id filter
+        from models.db import Url_transcripts_collection
+        results = list(Url_transcripts_collection.find({
+            'user_id': user_id,
+            '$or': [
+                {'video_title': {'$regex': search_term, '$options': 'i'}},
+                {'transcript_content': {'$regex': search_term, '$options': 'i'}},
+                {'video_info.uploader': {'$regex': search_term, '$options': 'i'}},
+                {'video_info.tags': {'$regex': search_term, '$options': 'i'}}
+            ]
+        }).sort('created_at', -1))
         
         return jsonify({
             'results': [serialize_mongo_doc(result) for result in results],
@@ -131,9 +199,20 @@ def search_transcripts():
 
 @url_extraction_bp.route('/get-all-transcripts', methods=['GET'])
 def get_all_transcripts():
-    """Get all stored transcripts."""
+    """Get all stored transcripts for authenticated user."""
     try:
-        transcripts = db_manager.get_all_transcripts()
+        # Verify authentication
+        user_data = get_user_from_request()
+        if not user_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        user_id = user_data.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Invalid user data'}), 401
+        
+        # Get transcripts filtered by user_id
+        from models.db import Url_transcripts_collection
+        transcripts = list(Url_transcripts_collection.find({'user_id': user_id}).sort('created_at', -1))
         
         return jsonify({
             'transcripts': [serialize_mongo_doc(transcript) for transcript in transcripts],
@@ -145,12 +224,26 @@ def get_all_transcripts():
 
 @url_extraction_bp.route('/delete-transcript/<transcript_id>', methods=['DELETE'])
 def delete_transcript(transcript_id):
-    """Delete transcript by ID."""
+    """Delete transcript by ID for authenticated user."""
     try:
-        result = db_manager.delete_transcript(transcript_id)
+        # Verify authentication
+        user_data = get_user_from_request()
+        if not user_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        user_id = user_data.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Invalid user data'}), 401
+        
+        # Delete only if the transcript belongs to the authenticated user
+        from models.db import Url_transcripts_collection
+        result = Url_transcripts_collection.delete_one({
+            '_id': ObjectId(transcript_id),
+            'user_id': user_id
+        })
         
         if result.deleted_count == 0:
-            return jsonify({'error': 'Transcript not found'}), 404
+            return jsonify({'error': 'Transcript not found or access denied'}), 404
         
         return jsonify({'message': 'Transcript deleted successfully'}), 200
         

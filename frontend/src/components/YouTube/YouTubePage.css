@@ -114,6 +114,12 @@
   cursor: not-allowed;
 }
 
+.button-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
 .extract-button {
   background: var(--primary-color);
   color: var(--message-user-text);
@@ -138,6 +144,30 @@
   transform: none;
 }
 
+.cancel-button {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cancel-button:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.cancel-button:active {
+  transform: translateY(0);
+}
+
 .error-message {
   background: rgba(239, 68, 68, 0.1);
   color: #dc2626;
@@ -155,8 +185,12 @@
 }
 
 .loading-container {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 40px 20px;
+  text-align: center;
   color: var(--text-secondary);
 }
 
@@ -167,12 +201,57 @@
   border-top: 4px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 16px;
+  margin-bottom: 16px;
+}
+
+.progress-info {
+  width: 100%;
+  max-width: 400px;
+  margin-top: 20px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), rgba(var(--primary-rgb), 0.8));
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  animation: progressPulse 2s ease-in-out infinite;
+}
+
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.progress-percentage {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.progress-status {
+  font-style: italic;
 }
 
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@keyframes progressPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
 }
 
 .video-content {
@@ -333,6 +412,17 @@
   .url-input-group {
     flex-direction: column;
     gap: 8px;
+  }
+  
+  .button-group {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .extract-button,
+  .cancel-button {
+    width: 100%;
+    justify-content: center;
   }
   
   .video-content {

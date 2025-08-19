@@ -29,7 +29,7 @@ class DatabaseManager:
             self.memory_storage = MemoryStorage()
     
     def store_transcript(self, video_title: str, video_url: str, duration: int, 
-                       transcript_content: str, video_info: Dict[str, Any] = None) -> str:
+                       transcript_content: str, video_info: Dict[str, Any] = None, user_id: str = None) -> str:
         """Store transcript data in MongoDB or memory storage.
         
         Args:
@@ -38,6 +38,7 @@ class DatabaseManager:
             duration: Duration of the video in seconds
             transcript_content: The actual transcript text
             video_info: Additional video information
+            user_id: ID of the user who created the transcript
             
         Returns:
             str: The inserted document ID
@@ -57,6 +58,7 @@ class DatabaseManager:
                     'duration': duration,
                     'duration_formatted': duration_formatted,
                     'transcript_content': transcript_content,
+                    'user_id': user_id,
                     'created_at': datetime.utcnow(),
                     'updated_at': datetime.utcnow(),
                     'file_size': len(transcript_content.encode('utf-8')),

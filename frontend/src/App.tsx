@@ -1,11 +1,15 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, AuthProvider, useTheme } from './contexts';
+import { ThemeProvider, AuthProvider, UrlExtractionProvider, VideoProcessingProvider, useTheme } from './contexts';
 import SignUpForm from './components/Signup/SignUpForm';
 import LoginForm from './components/Login/LoginForm';
 import WelcomePage from './components/WelcomePage/WelcomePage';
 import ChatInterface from './components/Chat/ChatInterface';
 import { YouTubePage } from './components/YouTube';
+import { VideoUpload } from './components/VideoUpload';
+import { HistoryPage } from './components/History';
+import { ProcessingIndicator } from './components/ProcessingIndicator';
+import UrlExtractionIndicator from './components/UrlExtractionIndicator';
 import './App.css';
 import Header from './components/Header/header';
 
@@ -15,6 +19,8 @@ const AppContent = () => {
   return (
     <div className={`App ${theme}`}>
       <Header />
+      <ProcessingIndicator />
+      <UrlExtractionIndicator />
       
       <main className="main-content">
         <Routes>
@@ -23,6 +29,8 @@ const AppContent = () => {
           <Route path="/signup" element={<SignUpForm />} />
           <Route path="/chat" element={<ChatInterface />} />
           <Route path="/youtube" element={<YouTubePage />} />
+          <Route path="/video-upload" element={<VideoUpload />} />
+          <Route path="/history" element={<HistoryPage />} />
         </Routes>
       </main>
     </div>
@@ -33,9 +41,13 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
-          <AppContent />
-        </Router>
+        <UrlExtractionProvider>
+          <VideoProcessingProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </VideoProcessingProvider>
+        </UrlExtractionProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -1,43 +1,33 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './YouTubePage.css';
-import { extractTranscript, validateYouTubeUrl, formatDuration, formatNumber, TranscriptData } from '../../api/youtubeApi';
+import { validateYouTubeUrl, formatDuration, formatNumber } from '../../api/youtubeApi';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useUrlExtraction } from '../../contexts/UrlExtractionContext';
 
 const YouTubePage: React.FC = () => {
   const { theme } = useTheme();
-  const [url, setUrl] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [videoData, setVideoData] = useState<TranscriptData | null>(null);
-  const [error, setError] = useState('');
-  const [showFullTranscript, setShowFullTranscript] = useState(false);
+  const {
+    state: { url, loading, videoData, error, showFullTranscript, progress, status, canCancel },
+    setUrl,
+    setShowFullTranscript,
+    startExtraction,
+    cancelExtraction
+  } = useUrlExtraction();
 
   const extractVideoContent = async () => {
     if (!url.trim()) {
-      setError('Please enter a YouTube URL');
       return;
     }
 
     if (!validateYouTubeUrl(url)) {
-      setError('Please enter a valid YouTube URL');
       return;
     }
 
-    setLoading(true);
-    setError('');
-    setVideoData(null);
-    setShowFullTranscript(false);
+    await startExtraction(url, 'captions');
+  };
 
-    try {
-      const data = await extractTranscript({
-        url: url,
-        method: 'captions'
-      });
-      setVideoData(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to extract video content');
-    } finally {
-      setLoading(false);
-    }
+  const handleCancelExtraction = () => {
+    cancelExtraction();
   };
 
   const loadFullTranscript = () => {
@@ -59,13 +49,24 @@ const YouTubePage: React.FC = () => {
               className="url-input"
               disabled={loading}
             />
-            <button
-              onClick={extractVideoContent}
-              disabled={loading || !url.trim()}
-              className="extract-button"
-            >
-              {loading ? 'Extracting...' : 'Extract Content'}
-            </button>
+            <div className="button-group">
+              <button
+                onClick={extractVideoContent}
+                disabled={loading || !url.trim()}
+                className="extract-button"
+              >
+                {loading ? 'Extracting...' : 'Extract Content'}
+              </button>
+              {canCancel && (
+                <button
+                  onClick={handleCancelExtraction}
+                  className="cancel-button"
+                  title="Cancel extraction"
+                >
+                  ✕ Cancel
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -79,7 +80,18 @@ const YouTubePage: React.FC = () => {
         {loading && (
           <div className="loading-container">
             <div className="loading-spinner"></div>
-            <p>Extracting video content...</p>
+            <div className="progress-info">
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill" 
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              <div className="progress-text">
+                <span className="progress-percentage">{progress}%</span>
+                <span className="progress-status">{status}</span>
+              </div>
+            </div>
           </div>
         )}
 

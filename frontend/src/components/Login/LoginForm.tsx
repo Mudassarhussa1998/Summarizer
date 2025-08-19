@@ -74,18 +74,15 @@ const LoginForm: React.FC = () => {
       // Call actual API
       const result = await loginUser(form.email, form.password);
       
-      // Check if login was successful and we have user data
-      if (result.user) {
-        // Create token if not provided by API
-        const token = result.token || 'jwt-token-' + Date.now();
-        
-        login(result.user, token);
+      // Check if login was successful and we have user data and token
+      if (result.user && result.token) {
+        login(result.user, result.token);
         showSuccess('Logged in successfully!');
         setTimeout(() => {
           navigate('/chat');
         }, 1500);
       } else {
-        throw new Error('Invalid response from server');
+        throw new Error('Invalid response from server - missing user data or token');
       }
     } catch (error: any) {
       showError(error.response?.data?.message || 'Login failed. Please try again.');

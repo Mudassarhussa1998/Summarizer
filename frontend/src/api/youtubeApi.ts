@@ -31,6 +31,7 @@ export interface TranscriptResponse {
 export interface ExtractTranscriptRequest {
   url: string;
   method: 'captions' | 'audio';
+  signal?: AbortSignal;
 }
 
 export interface GetVideoInfoRequest {
@@ -39,7 +40,11 @@ export interface GetVideoInfoRequest {
 
 // Extract transcript from YouTube URL
 export const extractTranscript = async (data: ExtractTranscriptRequest): Promise<TranscriptData> => {
-  const response = await axios.post('/api/url-extraction/extract-transcript', data);
+  const { signal, ...requestData } = data;
+  const response = await axios.post('/api/url-extraction/extract-transcript', requestData, {
+    signal,
+    timeout: 300000 // 5 minutes timeout
+  });
   return response.data;
 };
 
