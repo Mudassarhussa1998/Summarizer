@@ -31,4 +31,4 @@ app.register_blueprint(video_bp, url_prefix='/api/video')  # Video processing en
 app.register_blueprint(history_bp, url_prefix='/api/history')
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5002)

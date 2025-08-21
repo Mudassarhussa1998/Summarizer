@@ -83,7 +83,15 @@ def extract_transcript():
         video_info = video_extractor.get_video_info(url)
         
         if 'error' in video_info:
-            return jsonify({'error': video_info['error']}), 400
+            # Check if it's a network connectivity issue
+            if 'Network connectivity issue' in video_info['error']:
+                return jsonify({
+                    'error': 'Unable to connect to YouTube. This may be due to network restrictions or temporary connectivity issues. Please try again later.',
+                    'error_type': 'network_error',
+                    'retry_suggested': True
+                }), 503  # Service Unavailable
+            else:
+                return jsonify({'error': video_info['error']}), 400
         
         # Check if transcript already exists
         existing = db_manager.get_transcript_by_url(url)
@@ -107,7 +115,12 @@ def extract_transcript():
             return jsonify({'error': 'Invalid method. Use "captions" or "audio"'}), 400
         
         if not transcript_text:
-            return jsonify({'error': 'Failed to extract transcript'}), 500
+            return jsonify({
+                'error': 'Unable to extract transcript. This may be due to network connectivity issues, missing captions, or video restrictions. Please try again later or try the audio transcription method.',
+                'error_type': 'extraction_failed',
+                'retry_suggested': True,
+                'alternative_method': 'audio' if method == 'captions' else 'captions'
+            }), 503
         
         # Store transcript with user_id
         transcript_id = db_manager.store_transcript(

@@ -17,7 +17,19 @@ class VideoInfoExtractor:
         self.ydl_opts = {
             'quiet': True,
             'no_warnings': True,
-            'extract_flat': False
+            'extract_flat': False,
+            'skip_download': True,  # Don't download video, only extract metadata
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-us,en;q=0.5',
+                'Accept-Encoding': 'gzip,deflate',
+                'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
+                'Connection': 'keep-alive'
+            },
+            'socket_timeout': 30,
+            'retries': 3
         }
     
     def get_video_info(self, url: str) -> Dict[str, Any]:
@@ -45,9 +57,12 @@ class VideoInfoExtractor:
                 'error': 'Invalid YouTube URL'
             }
         
-        try:
-            with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=False)
+        import time
+        
+        for attempt in range(3):
+            try:
+                with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=False)
                 
                 # Format duration
                 duration_seconds = info.get('duration', 0)
@@ -64,39 +79,44 @@ class VideoInfoExtractor:
                     # Get the highest quality thumbnail
                     thumbnail_url = thumbnails[-1].get('url', '')
                 
-                return {
-                    'title': info.get('title', 'Unknown Title'),
-                    'duration': duration_seconds,
-                    'duration_formatted': duration_formatted,
-                    'description': self._truncate_description(info.get('description', '')),
-                    'uploader': info.get('uploader', ''),
-                    'upload_date': formatted_upload_date,
-                    'view_count': info.get('view_count', 0),
-                    'like_count': info.get('like_count', 0),
-                    'thumbnail': thumbnail_url,
-                    'tags': info.get('tags', [])[:10],  # Limit to first 10 tags
-                    'category': info.get('category', ''),
-                    'video_id': self._extract_video_id(url),
-                    'channel_id': info.get('channel_id', ''),
-                    'channel_url': info.get('channel_url', ''),
-                    'webpage_url': info.get('webpage_url', url)
-                }
-                
-        except Exception as e:
-            return {
-                'title': 'Error retrieving video info',
-                'duration': 0,
-                'duration_formatted': '00:00:00',
-                'description': '',
-                'uploader': '',
-                'upload_date': '',
-                'view_count': 0,
-                'like_count': 0,
-                'thumbnail': '',
-                'tags': [],
-                'category': '',
-                'error': f'Failed to extract video information: {str(e)}'
-            }
+                    return {
+                        'title': info.get('title', 'Unknown Title'),
+                        'duration': duration_seconds,
+                        'duration_formatted': duration_formatted,
+                        'description': self._truncate_description(info.get('description', '')),
+                        'uploader': info.get('uploader', ''),
+                        'upload_date': formatted_upload_date,
+                        'view_count': info.get('view_count', 0),
+                        'like_count': info.get('like_count', 0),
+                        'thumbnail': thumbnail_url,
+                        'tags': info.get('tags', [])[:10],  # Limit to first 10 tags
+                        'category': info.get('category', ''),
+                        'video_id': self._extract_video_id(url),
+                        'channel_id': info.get('channel_id', ''),
+                        'channel_url': info.get('channel_url', ''),
+                        'webpage_url': info.get('webpage_url', url)
+                    }
+            except Exception as e:
+                print(f"Video info extraction attempt {attempt + 1} failed: {e}")
+                if attempt < 2:  # Don't sleep on the last attempt
+                    time.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s
+                else:
+                    print(f"All video info extraction attempts failed. Final error: {e}")
+                    
+        return {
+            'title': 'Video Unavailable (Network Error)',
+            'duration': 0,
+            'duration_formatted': '00:00:00',
+            'description': 'Unable to fetch video information due to network connectivity issues. Please try again later.',
+            'uploader': '',
+            'upload_date': '',
+            'view_count': 0,
+            'like_count': 0,
+            'thumbnail': '',
+            'tags': [],
+            'category': '',
+            'error': 'Network connectivity issue - please try again later'
+        }
     
     def _format_duration(self, seconds: int) -> str:
         """Format duration from seconds to HH:MM:SS.

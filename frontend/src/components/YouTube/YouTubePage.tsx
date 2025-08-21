@@ -7,7 +7,7 @@ import { useUrlExtraction } from '../../contexts/UrlExtractionContext';
 const YouTubePage: React.FC = () => {
   const { theme } = useTheme();
   const {
-    state: { url, loading, videoData, error, showFullTranscript, progress, status, canCancel },
+    state: { url, loading, videoData, error, errorType, retryAvailable, showFullTranscript, progress, status, canCancel },
     setUrl,
     setShowFullTranscript,
     startExtraction,
@@ -71,9 +71,44 @@ const YouTubePage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="error-message">
-            <span className="error-icon">⚠️</span>
-            {error}
+          <div className={`error-message ${errorType === 'network_error' ? 'network-error' : ''}`}>
+            <div className="error-content">
+              <span className="error-icon">
+                {errorType === 'network_error' ? '🌐' : '⚠️'}
+              </span>
+              <div className="error-text">
+                <div className="error-main">{error}</div>
+                {errorType === 'network_error' && (
+                  <div className="error-details">
+                    This may be due to:
+                    <ul>
+                      <li>Network connectivity issues</li>
+                      <li>YouTube API restrictions</li>
+                      <li>Temporary server problems</li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+            {retryAvailable && (
+              <div className="error-actions">
+                <button 
+                  onClick={extractVideoContent}
+                  className="retry-button"
+                  disabled={loading}
+                >
+                  🔄 Try Again
+                </button>
+                <button 
+                  onClick={() => startExtraction(url, 'audio')}
+                  className="alternative-button"
+                  disabled={loading}
+                  title="Try extracting transcript from audio instead of captions"
+                >
+                  🎵 Try Audio Method
+                </button>
+              </div>
+            )}
           </div>
         )}
 

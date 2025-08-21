@@ -6,6 +6,8 @@ interface UrlExtractionState {
   loading: boolean;
   videoData: TranscriptData | null;
   error: string;
+  errorType?: string;
+  retryAvailable?: boolean;
   showFullTranscript: boolean;
   progress: number;
   status: string;
@@ -32,6 +34,8 @@ const initialState: UrlExtractionState = {
   loading: false,
   videoData: null,
   error: '',
+  errorType: undefined,
+  retryAvailable: false,
   showFullTranscript: false,
   progress: 0,
   status: '',
@@ -198,15 +202,33 @@ export const UrlExtractionProvider: React.FC<UrlExtractionProviderProps> = ({ ch
           ...prev,
           loading: false,
           error: 'Extraction cancelled',
+          errorType: undefined,
+          retryAvailable: false,
           progress: 0,
           status: '',
           canCancel: false
         }));
       } else {
+        // Handle structured error responses from backend
+        let errorMessage = 'Failed to extract video content';
+        let errorType: string | undefined = undefined;
+        let retryAvailable = false;
+        
+        if (error.response?.data) {
+          const errorData = error.response.data;
+          errorMessage = errorData.error || errorMessage;
+          errorType = errorData.error_type;
+          retryAvailable = errorData.retry_suggested || false;
+        } else {
+          errorMessage = error.message || errorMessage;
+        }
+        
         setState(prev => ({
           ...prev,
           loading: false,
-          error: error.message || 'Failed to extract video content',
+          error: errorMessage,
+          errorType,
+          retryAvailable,
           progress: 0,
           status: '',
           canCancel: false

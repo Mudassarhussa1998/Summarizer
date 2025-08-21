@@ -21,11 +21,24 @@ class CleanYouTubeTranscriber:
             'no_warnings': True,
             'writesubtitles': True,
             'writeautomaticsub': True,
-            'subtitleslangs': ['en', 'en-US', 'en-GB']
+            'subtitleslangs': ['en', 'en-US', 'en-GB'],
+            'skip_download': True,  # Don't download video, only extract info and subtitles
+            'extract_flat': False,   # We need full info extraction for subtitles
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-us,en;q=0.5',
+                'Accept-Encoding': 'gzip,deflate',
+                'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
+                'Connection': 'keep-alive'
+            },
+            'socket_timeout': 30,
+            'retries': 3
         }
         
     def get_video_info(self, url: str) -> dict:
-        """Get video title and duration.
+        """Get video title and duration with retry logic.
         
         Args:
             url: YouTube video URL
@@ -33,21 +46,34 @@ class CleanYouTubeTranscriber:
         Returns:
             Dict containing video information
         """
-        try:
-            with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=False)
-                return {
-                    'title': info.get('title', 'Unknown Title'),
-                    'duration': info.get('duration', 0),
-                    'uploader': info.get('uploader', ''),
-                    'description': info.get('description', '')[:500] + '...' if info.get('description', '') else ''
-                }
-        except Exception as e:
-            print(f"Error getting video info: {e}")
-            return {'title': 'Unknown Title', 'duration': 0, 'uploader': '', 'description': ''}
+        import time
+        
+        for attempt in range(3):
+            try:
+                with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=False)
+                    return {
+                        'title': info.get('title', 'Unknown Title'),
+                        'duration': info.get('duration', 0),
+                        'uploader': info.get('uploader', ''),
+                        'description': info.get('description', '')[:500] + '...' if info.get('description', '') else ''
+                    }
+            except Exception as e:
+                print(f"Attempt {attempt + 1} failed: {e}")
+                if attempt < 2:  # Don't sleep on the last attempt
+                    time.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s
+                else:
+                    print(f"All attempts failed. Final error: {e}")
+                    
+        return {
+            'title': 'Video Unavailable (Network Error)', 
+            'duration': 0, 
+            'uploader': '', 
+            'description': 'Unable to fetch video information due to network connectivity issues. Please try again later.'
+        }
     
     def extract_clean_captions(self, url: str) -> Optional[str]:
-        """Extract and clean captions from YouTube.
+        """Extract and clean captions from YouTube with retry logic.
         
         Args:
             url: YouTube video URL
@@ -55,35 +81,43 @@ class CleanYouTubeTranscriber:
         Returns:
             Cleaned transcript text or None if extraction fails
         """
-        try:
-            with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=False)
-                
-                # Try manual captions first (higher quality)
-                subtitles = info.get('subtitles', {})
-                if subtitles:
-                    for lang in ['en', 'en-US', 'en-GB']:
-                        if lang in subtitles:
-                            caption_url = subtitles[lang][0]['url']
-                            response = requests.get(caption_url, timeout=30)
-                            if response.status_code == 200:
-                                return self._extract_clean_text(response.text)
-                
-                # Try automatic captions as fallback
-                auto_captions = info.get('automatic_captions', {})
-                if auto_captions:
-                    for lang in ['en', 'en-US', 'en-GB']:
-                        if lang in auto_captions:
-                            caption_url = auto_captions[lang][0]['url']
-                            response = requests.get(caption_url, timeout=30)
-                            if response.status_code == 200:
-                                return self._extract_clean_text(response.text)
-                
-                return None
-                
-        except Exception as e:
-            print(f"Error extracting captions: {e}")
-            return None
+        import time
+        
+        for attempt in range(3):
+            try:
+                with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=False)
+                    
+                    # Try manual captions first (higher quality)
+                    subtitles = info.get('subtitles', {})
+                    if subtitles:
+                        for lang in ['en', 'en-US', 'en-GB']:
+                            if lang in subtitles:
+                                caption_url = subtitles[lang][0]['url']
+                                response = requests.get(caption_url, timeout=30)
+                                if response.status_code == 200:
+                                    return self._extract_clean_text(response.text)
+                    
+                    # Try automatic captions as fallback
+                    auto_captions = info.get('automatic_captions', {})
+                    if auto_captions:
+                        for lang in ['en', 'en-US', 'en-GB']:
+                            if lang in auto_captions:
+                                caption_url = auto_captions[lang][0]['url']
+                                response = requests.get(caption_url, timeout=30)
+                                if response.status_code == 200:
+                                    return self._extract_clean_text(response.text)
+                    
+                    return None
+                    
+            except Exception as e:
+                print(f"Caption extraction attempt {attempt + 1} failed: {e}")
+                if attempt < 2:  # Don't sleep on the last attempt
+                    time.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s
+                else:
+                    print(f"All caption extraction attempts failed. Final error: {e}")
+                    
+        return None
     
     def _extract_clean_text(self, raw_captions: str) -> str:
         """Extract and clean text from raw caption data.
