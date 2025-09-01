@@ -175,6 +175,19 @@ def process_video():
         # Insert into MongoDB
         result = Video_transcriptions_collection.insert_one(doc)
         
+        # Also store in the new categorical format
+        from services.url_modules.database_manager import DatabaseManager
+        db_manager = DatabaseManager()
+        db_manager.store_video_data_categorical(
+            video_title=video_file.filename,
+            duration=duration,
+            transcript=transcribed_text,
+            description="Uploaded video file",
+            user_id=user_id,
+            source_type='upload',
+            source_id=str(result.inserted_id)
+        )
+        
         return jsonify({
             "message": "Video processed successfully",
             "transcript_id": str(result.inserted_id),

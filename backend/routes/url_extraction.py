@@ -122,7 +122,12 @@ def extract_transcript():
                 'alternative_method': 'audio' if method == 'captions' else 'captions'
             }), 503
         
+        # Add debug logging
+        print("Attempting to store transcript...")
+        
         # Store transcript with user_id
+        # Add more logging before storage
+        print(f"Storing transcript for video: {video_info['title']}")
         transcript_id = db_manager.store_transcript(
             video_title=video_info['title'],
             video_url=url,
@@ -131,6 +136,18 @@ def extract_transcript():
             video_info=video_info,
             user_id=user_id
         )
+        print(f"Successfully stored transcript with ID: {transcript_id}")
+        
+        return jsonify({
+            'message': 'Transcript extracted successfully',
+            'transcript_id': str(transcript_id),
+            'video_info': video_info,
+            'transcript_preview': transcript_text[:500] + '...' if len(transcript_text) > 500 else transcript_text,
+            'transcript_content': transcript_text
+        }), 200
+    except Exception as e:
+        print(f"Error in extract_transcript: {str(e)}")
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
         
         return jsonify({
             'message': 'Transcript extracted successfully',
@@ -249,9 +266,26 @@ def delete_transcript(transcript_id):
             return jsonify({'error': 'Invalid user data'}), 401
         
         # Delete only if the transcript belongs to the authenticated user
-        from models.db import Url_transcripts_collection
+        from models.db import Url_transcripts_collection, video_data_collection
+        
+        # First find the transcript to get its ID
+        transcript = Url_transcripts_collection.find_one({
+            '_id': ObjectId(transcript_id),
+            'user_id': user_id
+        })
+        
+        if not transcript:
+            return jsonify({'error': 'Transcript not found or access denied'}), 404
+            
+        # Delete from main collection
         result = Url_transcripts_collection.delete_one({
             '_id': ObjectId(transcript_id),
+            'user_id': user_id
+        })
+        
+        # Also delete from categorical collection
+        video_data_collection.delete_many({
+            'source_id': str(transcript_id),
             'user_id': user_id
         })
         
@@ -267,6 +301,15 @@ def delete_transcript(transcript_id):
 def get_video_info():
     """Get video information without extracting transcript."""
     try:
+        # Verify authentication
+        user_data = get_user_from_request()
+        if not user_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        user_id = user_data.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Invalid user data'}), 401
+            
         data = request.get_json()
         url = data.get('url')
         
@@ -278,7 +321,190 @@ def get_video_info():
         if 'error' in video_info:
             return jsonify({'error': video_info['error']}), 400
         
+        # Store in categorical format without transcript
+        db_manager.store_video_data_categorical(
+            video_title=video_info['title'],
+            video_url=url,
+            duration=video_info.get('duration', 0),
+            transcript=None,
+            description=video_info.get('description', ''),
+            user_id=user_id,
+            source_type='url',
+            source_id=None
+        )
+        
         return jsonify({'video_info': video_info}), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+
+@url_extraction_bp.route('/get-categorical-videos', methods=['GET'])
+def get_categorical_videos():
+    """Get all videos from the categorical collection for authenticated user."""
+    try:
+        # Verify authentication
+        user_data = get_user_from_request()
+        if not user_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        user_id = user_data.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Invalid user data'}), 401
+        
+        # Get videos filtered by user_id
+        from models.db import video_data_collection
+        videos = list(video_data_collection.find({'user_id': user_id}).sort('created_at', -1))
+        
+        return jsonify({
+            'videos': [serialize_mongo_doc(video) for video in videos],
+            'count': len(videos)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+
+@url_extraction_bp.route('/search-categorical-videos', methods=['GET'])
+def search_categorical_videos():
+    """Search videos in the categorical collection by various fields."""
+    try:
+        # Verify authentication
+        user_data = get_user_from_request()
+        if not user_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        user_id = user_data.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Invalid user data'}), 401
+        
+        search_term = request.args.get('q', '')
+        if not search_term:
+            return jsonify({'error': 'Search term is required'}), 400
+        
+        # Search with user_id filter
+        from models.db import video_data_collection
+        results = list(video_data_collection.find({
+            'user_id': user_id,
+            '$or': [
+                {'name': {'$regex': search_term, '$options': 'i'}},
+                {'description': {'$regex': search_term, '$options': 'i'}},
+                {'transcript': {'$regex': search_term, '$options': 'i'}}
+            ]
+        }).sort('created_at', -1))
+        
+        return jsonify({
+            'results': [serialize_mongo_doc(result) for result in results],
+            'count': len(results)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+
+@url_extraction_bp.route('/get-categorical-video/<video_id>', methods=['GET'])
+def get_categorical_video(video_id):
+    """Get a specific video from the categorical collection by ID."""
+    try:
+        # Verify authentication
+        user_data = get_user_from_request()
+        if not user_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        user_id = user_data.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Invalid user data'}), 401
+        
+        # Get video by ID and user_id
+        from models.db import video_data_collection
+        video = video_data_collection.find_one({
+            'video_id': video_id,
+            'user_id': user_id
+        })
+        
+        if not video:
+            return jsonify({'error': 'Video not found or access denied'}), 404
+        
+        return jsonify({
+            'video': serialize_mongo_doc(video)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+
+@url_extraction_bp.route('/delete-categorical-video/<video_id>', methods=['DELETE'])
+def delete_categorical_video(video_id):
+    """Delete a specific video from the categorical collection by ID."""
+    try:
+        # Verify authentication
+        user_data = get_user_from_request()
+        if not user_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        user_id = user_data.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Invalid user data'}), 401
+        
+        # Delete video by ID and user_id
+        from models.db import video_data_collection
+        result = video_data_collection.delete_one({
+            'video_id': video_id,
+            'user_id': user_id
+        })
+        
+        if result.deleted_count == 0:
+            return jsonify({'error': 'Video not found or access denied'}), 404
+        
+        return jsonify({'message': 'Video deleted successfully'}), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+
+@url_extraction_bp.route('/get-structured-summary', methods=['GET'])
+def get_structured_summary():
+    """Get structured data summary for authenticated user."""
+    try:
+        # Verify authentication
+        user_data = get_user_from_request()
+        if not user_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        user_id = user_data.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Invalid user data'}), 401
+        
+        # Get structured summary
+        summary = db_manager.get_structured_data_summary(user_id)
+        
+        return jsonify({
+            'summary': summary,
+            'message': 'Structured data summary retrieved successfully'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+
+@url_extraction_bp.route('/get-all-structured-data', methods=['GET'])
+def get_all_structured_data():
+    """Get all videos with structured data for authenticated user."""
+    try:
+        # Verify authentication
+        user_data = get_user_from_request()
+        if not user_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        user_id = user_data.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Invalid user data'}), 401
+        
+        # Get all structured data
+        from models.db import video_data_collection
+        videos = list(video_data_collection.find(
+            {'user_id': user_id}
+        ).sort('created_at', -1))
+        
+        return jsonify({
+            'videos': [serialize_mongo_doc(video) for video in videos],
+            'count': len(videos),
+            'message': 'All structured data retrieved successfully'
+        }), 200
         
     except Exception as e:
         return jsonify({'error': f'Internal server error: {str(e)}'}), 500

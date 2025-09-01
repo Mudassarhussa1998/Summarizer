@@ -83,7 +83,7 @@ fi
 cd ..
 
 # Start Flask backend in background
-echo -e "${GREEN}Starting Flask backend server on port 5001...${NC}"
+echo -e "${GREEN}Starting Flask backend server on port 5002...${NC}"
 cd backend
 python3 app.py &
 BACKEND_PID=$!
@@ -94,7 +94,7 @@ echo "Waiting for backend to initialize..."
 sleep 5
 
 # Check if backend started successfully
-if ! curl -s http://localhost:5001 > /dev/null; then
+if ! curl -s http://localhost:5002 > /dev/null; then
     echo -e "${YELLOW}Backend may still be starting up...${NC}"
 fi
 
@@ -108,7 +108,7 @@ cd ..
 echo ""
 echo -e "${GREEN}✅ Servers started successfully!${NC}"
 echo -e "${GREEN}Frontend: http://localhost:3000${NC}"
-echo -e "${GREEN}Backend API: http://localhost:5001${NC}"
+echo -e "${GREEN}Backend API: http://localhost:5002${NC}"
 echo ""
 echo -e "${YELLOW}Press Ctrl+C to stop both servers${NC}"
 
@@ -128,7 +128,7 @@ cleanup() {
     
     # Kill any remaining processes on the ports
     lsof -ti:3000 | xargs kill -9 2>/dev/null
-    lsof -ti:5001 | xargs kill -9 2>/dev/null
+    lsof -ti:5002 | xargs kill -9 2>/dev/null
     
     echo -e "${GREEN}All servers stopped successfully${NC}"
     exit 0
