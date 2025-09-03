@@ -25,4 +25,4 @@ app.register_blueprint(url_extraction_bp, url_prefix='/api/url-extraction')
 app.register_blueprint(video_bp, url_prefix='/api/video')  # Video processing endpoints
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5002)
+    app.run(debug=True, host='0.0.0.0', port=5002)

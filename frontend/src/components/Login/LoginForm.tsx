@@ -30,7 +30,7 @@ const LoginForm: React.FC = () => {
   // Redirect if already authenticated
   React.useEffect(() => {
     if (isAuthenticated) {
-      navigate('/chat');
+      navigate('/youtube');
     }
   }, [isAuthenticated, navigate]);
 
@@ -79,7 +79,7 @@ const LoginForm: React.FC = () => {
         login(result.user, result.token);
         showSuccess('Logged in successfully!');
         setTimeout(() => {
-          navigate('/chat');
+          navigate('/youtube');
         }, 1500);
       } else {
         throw new Error('Invalid response from server - missing user data or token');

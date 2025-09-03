@@ -263,15 +263,15 @@ const VideoUpload: React.FC = () => {
                   </div>
                   <div className="stat">
                     <span className="stat-label">Words:</span>
-                    <span className="stat-value">{videoData.word_count.toLocaleString()}</span>
+                    <span className="stat-value">{videoData.word_count ? videoData.word_count.toLocaleString() : '0'}</span>
                   </div>
                   <div className="stat">
                     <span className="stat-label">Characters:</span>
-                    <span className="stat-value">{videoData.character_count.toLocaleString()}</span>
+                    <span className="stat-value">{videoData.character_count ? videoData.character_count.toLocaleString() : '0'}</span>
                   </div>
                   <div className="stat">
                     <span className="stat-label">Language:</span>
-                    <span className="stat-value">{videoData.language.toUpperCase()}</span>
+                    <span className="stat-value">{videoData.language ? videoData.language.toUpperCase() : 'N/A'}</span>
                   </div>
                 </div>
               </div>

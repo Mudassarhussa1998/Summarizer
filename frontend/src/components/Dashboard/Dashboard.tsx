@@ -113,7 +113,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
               </div>
               <div className="stat-card">
                 <h3>Total Words</h3>
-                <p className="stat-number">{summary.total_words.toLocaleString()}</p>
+                <p className="stat-number">{summary.total_words ? summary.total_words.toLocaleString() : '0'}</p>
               </div>
               <div className="stat-card">
                 <h3>Avg Sentiment</h3>
@@ -130,23 +130,23 @@ const Dashboard: React.FC<DashboardProps> = () => {
               <div className="insight-card">
                 <h3>Top Topics</h3>
                 <div className="topic-list">
-                  {Object.entries(summary.top_topics).map(([topic, count]) => (
+                  {summary.top_topics ? Object.entries(summary.top_topics).map(([topic, count]) => (
                     <div key={topic} className="topic-item">
                       <span className="topic-name">{topic}</span>
                       <span className="topic-count">{count}</span>
                     </div>
-                  ))}
+                  )) : <p>No topics data available</p>}
                 </div>
               </div>
 
               <div className="insight-card">
                 <h3>Top Keywords</h3>
                 <div className="keyword-list">
-                  {Object.entries(summary.top_keywords).slice(0, 8).map(([keyword, count]) => (
+                  {summary.top_keywords ? Object.entries(summary.top_keywords).slice(0, 8).map(([keyword, count]) => (
                     <span key={keyword} className="keyword-tag">
                       {keyword} ({count})
                     </span>
-                  ))}
+                  )) : <p>No keywords data available</p>}
                 </div>
               </div>
 
@@ -157,31 +157,31 @@ const Dashboard: React.FC<DashboardProps> = () => {
                     <div 
                       className="sentiment-segment positive"
                       style={{ 
-                        width: `${(summary.sentiment_distribution.positive / summary.total_videos) * 100}%` 
+                        width: `${summary.sentiment_distribution && summary.total_videos ? (summary.sentiment_distribution.positive / summary.total_videos) * 100 : 0}%` 
                       }}
                     ></div>
                     <div 
                       className="sentiment-segment neutral"
                       style={{ 
-                        width: `${(summary.sentiment_distribution.neutral / summary.total_videos) * 100}%` 
+                        width: `${summary.sentiment_distribution && summary.total_videos ? (summary.sentiment_distribution.neutral / summary.total_videos) * 100 : 0}%` 
                       }}
                     ></div>
                     <div 
                       className="sentiment-segment negative"
                       style={{ 
-                        width: `${(summary.sentiment_distribution.negative / summary.total_videos) * 100}%` 
+                        width: `${summary.sentiment_distribution && summary.total_videos ? (summary.sentiment_distribution.negative / summary.total_videos) * 100 : 0}%` 
                       }}
                     ></div>
                   </div>
                   <div className="sentiment-legend">
                     <span className="legend-item positive">
-                      Positive ({summary.sentiment_distribution.positive})
+                      Positive ({summary.sentiment_distribution ? summary.sentiment_distribution.positive : 0})
                     </span>
                     <span className="legend-item neutral">
-                      Neutral ({summary.sentiment_distribution.neutral})
+                      Neutral ({summary.sentiment_distribution ? summary.sentiment_distribution.neutral : 0})
                     </span>
                     <span className="legend-item negative">
-                      Negative ({summary.sentiment_distribution.negative})
+                      Negative ({summary.sentiment_distribution ? summary.sentiment_distribution.negative : 0})
                     </span>
                   </div>
                 </div>
@@ -201,14 +201,14 @@ const Dashboard: React.FC<DashboardProps> = () => {
                   </div>
                   
                   <div className="video-meta">
-                    <span className="video-words">{video.word_count} words</span>
+                    <span className="video-words">{video.word_count ? video.word_count.toLocaleString() : '0'} words</span>
                     <span 
                       className="video-sentiment"
                       style={{ color: getSentimentColor(video.sentiment.score) }}
                     >
                       {video.sentiment.label}
                     </span>
-                    <span className="video-language">{video.language}</span>
+                    <span className="video-language">{video.language || 'N/A'}</span>
                   </div>
 
                   <div className="video-topics">
@@ -248,19 +248,19 @@ const Dashboard: React.FC<DashboardProps> = () => {
                   <div className="analytics-stat">
                     <span className="stat-label">Average Words per Video:</span>
                     <span className="stat-value">
-                      {Math.round(summary.total_words / summary.total_videos)}
+                      {summary.total_words && summary.total_videos ? Math.round(summary.total_words / summary.total_videos) : 0}
                     </span>
                   </div>
                   <div className="analytics-stat">
                     <span className="stat-label">Average Duration per Video:</span>
                     <span className="stat-value">
-                      {Math.round((summary.total_duration_hours * 60) / summary.total_videos)} min
+                      {summary.total_duration_hours && summary.total_videos ? Math.round((summary.total_duration_hours * 60) / summary.total_videos) : 0} min
                     </span>
                   </div>
                   <div className="analytics-stat">
                     <span className="stat-label">Most Common Topic:</span>
                     <span className="stat-value">
-                      {Object.keys(summary.top_topics)[0] || 'N/A'}
+                      {summary.top_topics && Object.keys(summary.top_topics).length > 0 ? Object.keys(summary.top_topics)[0] : 'N/A'}
                     </span>
                   </div>
                 </div>
@@ -269,9 +269,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
               <div className="analytics-card">
                 <h3>Language Distribution</h3>
                 <div className="language-stats">
-                  {Array.from(new Set(videos.map(v => v.language))).map(lang => (
+                  {Array.from(new Set(videos.map(v => v.language).filter(Boolean))).map(lang => (
                     <div key={lang} className="language-item">
-                      <span className="language-name">{lang.toUpperCase()}</span>
+                      <span className="language-name">{lang ? lang.toUpperCase() : 'N/A'}</span>
                       <span className="language-count">
                         {videos.filter(v => v.language === lang).length}
                       </span>

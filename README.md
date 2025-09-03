@@ -30,7 +30,27 @@ Summarizer/
 
 ## Setup Instructions
 
-### Prerequisites
+### Option 1: Using Docker (Recommended)
+
+The easiest way to run the application is using Docker, which handles all dependencies and setup automatically.
+
+#### Prerequisites
+1. **Docker** - Install from [https://docs.docker.com/get-docker/](https://docs.docker.com/get-docker/)
+2. **Docker Compose** - Usually included with Docker Desktop
+
+#### Running with Docker
+1. Clone this repository
+2. From the project root, run:
+   ```bash
+   docker-compose up -d
+   ```
+3. Access the application at http://localhost:3000
+
+For more detailed Docker instructions, see [DOCKER_README.md](DOCKER_README.md)
+
+### Option 2: Manual Setup
+
+#### Prerequisites
 1. **Python 3.7+** - Make sure Python is installed
 2. **Node.js 16+** - Required for React 19 frontend
 3. **MongoDB** - Database server
@@ -42,7 +62,7 @@ Summarizer/
 5. **PyAudio** - For speech recognition (may require additional setup)
    - macOS: `brew install portaudio` then `pip install pyaudio`
 
-### Environment Setup
+#### Environment Setup
 1. Create a `.env` file in the `backend/` directory with:
    ```
    JWT_SECRET=your-secret-key-here

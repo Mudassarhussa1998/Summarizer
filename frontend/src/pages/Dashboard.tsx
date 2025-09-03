@@ -96,15 +96,15 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="overview-card">
               <h3>Total Duration</h3>
-              <p className="card-value">{summary.total_duration_hours.toFixed(1)}h</p>
+              <p className="card-value">{summary.total_duration_hours ? summary.total_duration_hours.toFixed(1) : '0'}h</p>
             </div>
             <div className="overview-card">
               <h3>Total Words</h3>
-              <p className="card-value">{summary.total_words.toLocaleString()}</p>
+              <p className="card-value">{summary.total_words ? summary.total_words.toLocaleString() : '0'}</p>
             </div>
             <div className="overview-card">
               <h3>Avg Sentiment</h3>
-              <p className="card-value">{summary.average_sentiment.toFixed(2)}</p>
+              <p className="card-value">{summary.average_sentiment !== undefined ? summary.average_sentiment.toFixed(2) : '0'}</p>
             </div>
           </div>
 
@@ -124,11 +124,11 @@ const Dashboard: React.FC = () => {
             <div className="analytics-card">
               <h3>Top Keywords</h3>
               <div className="keyword-list">
-                {Object.entries(summary.top_keywords).slice(0, 8).map(([keyword, count]) => (
+                {summary.top_keywords ? Object.entries(summary.top_keywords).slice(0, 8).map(([keyword, count]) => (
                   <span key={keyword} className="keyword-tag">
                     {keyword} ({count})
                   </span>
-                ))}
+                )) : <p>No keywords data available</p>}
               </div>
             </div>
 
@@ -137,18 +137,18 @@ const Dashboard: React.FC = () => {
               <div className="sentiment-bars">
                 <div className="sentiment-bar">
                   <span>Positive</span>
-                  <div className="bar positive" style={{width: `${summary.sentiment_distribution.positive}%`}}></div>
-                  <span>{summary.sentiment_distribution.positive}%</span>
+                  <div className="bar positive" style={{width: `${summary.sentiment_distribution?.positive || 0}%`}}></div>
+                  <span>{summary.sentiment_distribution?.positive || 0}%</span>
                 </div>
                 <div className="sentiment-bar">
                   <span>Neutral</span>
-                  <div className="bar neutral" style={{width: `${summary.sentiment_distribution.neutral}%`}}></div>
-                  <span>{summary.sentiment_distribution.neutral}%</span>
+                  <div className="bar neutral" style={{width: `${summary.sentiment_distribution?.neutral || 0}%`}}></div>
+                  <span>{summary.sentiment_distribution?.neutral || 0}%</span>
                 </div>
                 <div className="sentiment-bar">
                   <span>Negative</span>
-                  <div className="bar negative" style={{width: `${summary.sentiment_distribution.negative}%`}}></div>
-                  <span>{summary.sentiment_distribution.negative}%</span>
+                  <div className="bar negative" style={{width: `${summary.sentiment_distribution?.negative || 0}%`}}></div>
+                  <span>{summary.sentiment_distribution?.negative || 0}%</span>
                 </div>
               </div>
             </div>
@@ -169,9 +169,9 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="video-meta">
                 <p><strong>Duration:</strong> {video.duration_formatted}</p>
-                <p><strong>Words:</strong> {video.word_count.toLocaleString()}</p>
+                <p><strong>Words:</strong> {video.word_count ? video.word_count.toLocaleString() : '0'}</p>
                 <p><strong>Language:</strong> {video.language}</p>
-                <p><strong>Readability:</strong> {video.structured_data.readability_score.toFixed(1)}</p>
+                <p><strong>Readability:</strong> {video.structured_data && video.structured_data.readability_score !== undefined ? video.structured_data.readability_score.toFixed(1) : 'N/A'}</p>
               </div>
               <div className="video-topics">
                 <strong>Topics:</strong>

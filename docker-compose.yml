@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # MongoDB service
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - summarizer-network
+
+  # Backend service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: summarizer-backend
+    ports:
+      - "5002:5002"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+      - SECRET_KEY=your-secret-key-change-this-in-production
+      - JWT_SECRET=your-secret-key-change-this-in-production
+      - SMTP_SERVER=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USERNAME=your-email@gmail.com
+      - SMTP_PASSWORD=your-app-password
+    depends_on:
+      - mongodb
+    networks:
+      - summarizer-network
+
+  # Frontend service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: summarizer-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://backend:5002
+    depends_on:
+      - backend
+    networks:
+      - summarizer-network
+
+networks:
+  summarizer-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:

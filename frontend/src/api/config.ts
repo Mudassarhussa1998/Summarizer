@@ -1,10 +1,10 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: 'http://127.0.0.1:5002',
+  BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:5002',
   ENDPOINTS: {
     AUTH: '/api/auth',
     SESSION: '/api/session',
-    CHAT: '/api/chat',
+    CHAT: '/youtube',
     UPLOAD: '/api/upload'
   }
 };
